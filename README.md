@@ -25,7 +25,7 @@ Then you need to download the FULL RHEL8 image and link it in the modules folder
 Review settings in **idm.tfvars** file, containing some basic inputs:
 
     network_cidr = ["192.168.210.0/24"]
-    domain = "rhdemo.labs"
+    domain = "idmdemo.labs"
     libvirt_network = "vm-net"
     libvirt_pool = "vm-pool"
     disk_size = 40
