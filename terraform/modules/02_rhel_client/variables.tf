@@ -49,5 +49,5 @@ variable disk_size {
 variable os_image_rhel_client {
   type        = string
   description = "URL/path of the image to be used for the VM provisioning"
-  default     = "rhel.iso"
+  default     = "rhel-client.iso"
 }
