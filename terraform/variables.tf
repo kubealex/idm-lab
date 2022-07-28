@@ -1,7 +1,7 @@
 variable domain {
   type        = string
   description = "Domain for the virtual machine fqdn"
-  default     = "virt-test"
+  default     = "idm-demo.labs"
 }
 
 variable libvirt_network {
