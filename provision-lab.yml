@@ -42,7 +42,7 @@
       - name: Retrieve RHEL ISO
         ansible.builtin.get_url:
           url: "{{ installer_url }}"
-          dest: "{{ playbook_dir }}/rhel8.iso"
+          dest: "{{ playbook_dir }}/rhel.iso"
 
       when: offline_token is defined and offline_token != ""
 
