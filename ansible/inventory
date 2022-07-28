@@ -1,15 +1,15 @@
 [ipaserver]
-idm-server.rhdemo.labs
+idm-server.idmdemo.labs
 
 [ipaclients]
-idm-client.rhdemo.labs
+idm-client.idmdemo.labs
 
 [ipaservers]
-idm-server.rhdemo.labs
+idm-server.idmdemo.labs
 
 [ipaserver:vars]
-ipaserver_domain=rhdemo.labs
-ipaserver_realm=RHDEMO.LABS
+ipaserver_domain=idmdemo.labs
+ipaserver_realm=IDMDEMO.LABS
 ipaserver_setup_dns=yes
 ipaserver_setup_adtrust=yes
 ipaserver_auto_forwarders=yes
@@ -17,10 +17,10 @@ ipaadmin_password=admin123
 ipadm_password=admin123
 
 [ipaclients:vars]
-ipaclient_domain=rhdemo.labs
-ipaclient_realm=RHDEMO.LABS
-ipaserver_domain=rhdemo.labs
-ipaserver_realm=RHDEMO.LABS
+ipaclient_domain=idmdemo.labs
+ipaclient_realm=IDMDEMO.LABS
+ipaserver_domain=idmdemo.labs
+ipaserver_realm=idmdemo.LABS
 ipaadmin_principal=admin
 ipaadmin_password=admin123
 ipassd_enable_dns_updates=true
