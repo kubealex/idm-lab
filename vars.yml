@@ -15,3 +15,4 @@ modules:
   - module: 02_rhel_client
     instance: rhel8-client
     hostname: el8-server    
+domain: idmdemo.labs
