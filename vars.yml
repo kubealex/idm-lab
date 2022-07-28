@@ -10,9 +10,9 @@ packages:
   - virt-manager
 modules:
   - module: 01_idm_server
-    instance: rhel8-idm
+    instance: rhel-idm
     hostname: idm-server
   - module: 02_rhel_client
-    instance: rhel8-client
+    instance: rhel-client
     hostname: el8-server    
 domain: idmdemo.labs
