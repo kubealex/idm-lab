@@ -2,6 +2,7 @@
   hosts: localhost
   vars:
     network_cidr: 192.168.210.0/24
+  become: true
   tasks:
     - name: Provision all terraform resources
       community.general.terraform:
@@ -9,7 +10,6 @@
         force_init: true
         variables:
           network_cidr: ' ["{{ network_cidr }}"]'
-        state: present
 
     - name: Add Local resolver for the domain
       copy:
@@ -40,6 +40,7 @@
         path: ~/.ssh/known_hosts
         state: absent
       loop: "{{ groups['servers'] }}"
+      become: false
 
 - name: Check connection to servers
   hosts: servers
