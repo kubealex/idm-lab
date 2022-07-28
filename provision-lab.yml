@@ -1,9 +1,121 @@
+- name: This play downloads required ISOs for VM setup 
+  hosts: localhost
+  vars_prompt:
+  - name: offline_token
+    prompt: What is your Offline Token? Leave this empty if you don't want to download ISOS (Check README)
+    unsafe: yes
+    private: yes      
+  vars:
+    checksum:
+      rhel8: c324f3b07283f9393168f0a4ad2167ebbf7e4699d65c9670e0d9e58ba4e2a9a8
+
+  tasks:
+    - block:
+      - name: Retrieve an access token
+        ansible.builtin.uri:
+          url: https://sso.redhat.com/auth/realms/redhat-external/protocol/openid-connect/token
+          body:
+            grant_type: refresh_token
+            client_id: rhsm-api
+            refresh_token: "{{ offline_token }}"
+          body_format: form-urlencoded
+          method: POST
+        register: response
+
+      - name: Retrieve image download URL
+        ansible.builtin.uri:
+          url: https://api.access.redhat.com/management/v1/images/{{ checksum.rhel8 }}/download
+          follow_redirects: no
+          headers:
+            Content-Type: application/json
+            Authorization: 'Bearer {{ response.json.access_token }}'
+          status_code:
+            - 307
+            - 200
+        register: imageurl
+
+      - name: Set result as facts
+        ansible.builtin.set_fact:
+          installer_url: "{{ imageurl.json.body.href }}"
+          installer_package: "{{ imageurl.json.body.filename }}"
+      
+      - name: Retrieve RHEL ISO
+        ansible.builtin.get_url:
+          url: "{{ installer_url }}"
+          dest: "{{ playbook_dir }}/rhel8.iso"
+
+      when: offline_token is defined and offline_token != ""
+
 - name: This play provisions VMs for centos2rhel migration demos
   hosts: localhost
+  become: true
   vars:
     network_cidr: 192.168.210.0/24
-  become: true
+  vars_files:
+    - vars.yml
   tasks:
+    - name: Ensure required packages are in place
+      ansible.builtin.yum: 
+        name: "{{ packages }}"
+
+    - name: Ensure libvirtd is running
+      ansible.builtin.service: 
+        name: libvirtd
+        state: started
+        enabled: true
+
+    - name: Ensure libvirt can use root as user
+      ansible.builtin.replace:
+        path: /etc/libvirt/qemu.conf
+        regexp: "{{ item.regexp }}"
+        replace: "{{ item.line }}"
+      loop:
+        - regexp: '#user = "root"'
+          line: 'user = "root"'
+        - regexp: '#group = "root"'
+          line: 'group = "root"'
+
+    - name: Restart libvirtd service
+      ansible.builtin.service: 
+        name: libvirtd
+        state: restarted
+   
+    - name: Create required folders
+      ansible.builtin.file:
+        state: directory
+        path: "{{ playbook_dir }}/terraform/kickstart/{{ item.instance }}"
+        recurse: true
+      loop: "{{ modules }}"
+
+    - name: Create symbolic link to RHEL image
+      ansible.builtin.file:
+        src: "{{ playbook_dir }}/rhel8.iso"
+        dest: "{{ playbook_dir }}/terraform/modules/{{ item.module }}/{{ item.instance }}.iso"
+        state: link
+      loop: "{{ modules }}"
+          
+    - name: Create a 1Mib file to store kickstart 
+      community.general.filesize:
+        path: "{{ playbook_dir }}/terraform/modules/{{ item.module }}/{{ item.instance }}-oemdrv.img"
+        size: 1MiB
+      loop: "{{ modules }}"
+                         
+    - name: Generate kickstart from template
+      ansible.builtin.template:
+        src: ks.cfg.j2
+        dest: "{{ playbook_dir }}/terraform/kickstart/{{ item.instance }}/ks.cfg"
+      loop: "{{ modules }}"
+      vars:
+        hostname: "{{ item.hostname }}"
+          
+    - name: Rebuild Kickstart config
+      community.general.filesystem:
+        fstype: ext2
+        dev: "{{ playbook_dir }}/terraform/modules/{{ item.module }}/{{ item.instance }}-oemdrv.img"
+        opts: -d {{ playbook_dir }}/terraform/kickstart/{{ item.instance }} -L OEMDRV
+        force: true
+      loop: "{{ modules }}"
+
     - name: Provision all terraform resources
       community.general.terraform:
         project_path: "terraform/"

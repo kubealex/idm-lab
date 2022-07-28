@@ -1,0 +1,17 @@
+packages:
+  - python3-lxml
+  - python3-netaddr
+  - python3-libvirt
+  - python3-pip
+  - libvirt-devel
+  - libvirt
+  - qemu-kvm
+  - virt-install
+  - virt-manager
+modules:
+  - module: 01_idm_server
+    instance: rhel8-idm
+    hostname: idm-server
+  - module: 02_rhel_client
+    instance: rhel8-client
+    hostname: el8-server    
