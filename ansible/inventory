@@ -1,11 +1,11 @@
 [ipaserver]
-idm-server.idmdemo.labs
+idm-server.idmdemo.labs ansible_user=sysdamin ansible_password=redhat
 
 [ipaclients]
-idm-client.idmdemo.labs
+idm-client.idmdemo.labs ansible_user=sysdamin ansible_password=redhat
 
 [ipaservers]
-idm-server.idmdemo.labs
+idm-server.idmdemo.labs ansible_user=sysdamin ansible_password=redhat
 
 [ipaserver:vars]
 ipaserver_domain=idmdemo.labs
