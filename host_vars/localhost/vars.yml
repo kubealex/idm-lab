@@ -1,20 +1,12 @@
-packages:
-  - python3-lxml
-  - python3-netaddr
-  - python3-libvirt
-  - python3-pip
-  - libvirt-devel
-  - libvirt
-  - qemu-kvm
-  - virt-install
-  - virt-manager
 modules:
   - module: 01_idm_server
     instance: rhel-idm
     hostname: idm-server
+    version: rhel9
   - module: 02_rhel_client
     instance: rhel-client
     hostname: idm-client
+    version: rhel9
 domain: idmdemo.labs
 checksum:
   rhel9: c6942e3ed65947ed48c30589d9c1a752e96c5b94ee8de1923331449fee162cc1

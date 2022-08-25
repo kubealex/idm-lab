@@ -17,87 +17,13 @@
   hosts: localhost
   become: true
   tasks:
-    - name: Ensure required packages are in place
-      ansible.builtin.yum:
-        name: "{{ packages }}"
-
-    - name: Ensure libvirtd is running
-      ansible.builtin.service:
-        name: libvirtd
-        state: started
-        enabled: true
-
-    - name: Ensure libvirt can use root as user
-      ansible.builtin.replace:
-        path: /etc/libvirt/qemu.conf
-        regexp: "{{ item.regexp }}"
-        replace: "{{ item.line }}"
-      loop:
-        - regexp: '#user = "root"'
-          line: 'user = "root"'
-        - regexp: '#group = "root"'
-          line: 'group = "root"'
-
-    - name: Restart libvirtd service
-      ansible.builtin.service:
-        name: libvirtd
-        state: restarted
-
-    - name: Create required folders
-      ansible.builtin.file:
-        state: directory
-        path: "{{ playbook_dir }}/terraform/kickstart/{{ item.instance }}"
-        recurse: true
-      loop: "{{ modules }}"
-
-    - name: Create symbolic link to RHEL image
-      ansible.builtin.file:
-        src: "{{ playbook_dir }}/rhel9.iso"
-        dest: "{{ playbook_dir }}/terraform/modules/{{ item.module }}/{{ item.instance }}.iso"
-        state: link
-      loop: "{{ modules }}"
-
-    - name: Create a 1Mib file to store kickstart
-      community.general.filesize:
-        path: "{{ playbook_dir }}/terraform/modules/{{ item.module }}/{{ item.instance }}-oemdrv.img"
-        size: 1MiB
-      loop: "{{ modules }}"
-
-    - name: Generate kickstart from template
-      ansible.builtin.template:
-        src: ks.cfg.j2
-        dest: "{{ playbook_dir }}/terraform/kickstart/{{ item.instance }}/ks.cfg"
-        mode: 0755
-      loop: "{{ modules }}"
+    - name: Provision libvirt VM using role
+      ansible.builtin.include_role:
+        name: host-provisioner
       vars:
-        hostname: "{{ item.hostname }}"
-
-    - name: Rebuild Kickstart config
-      community.general.filesystem:
-        fstype: ext2
-        dev: "{{ playbook_dir }}/terraform/modules/{{ item.module }}/{{ item.instance }}-oemdrv.img"
-        opts: -d {{ playbook_dir }}/terraform/kickstart/{{ item.instance }} -L OEMDRV
-        force: true
-      loop: "{{ modules }}"
-
-    - name: Provision all terraform resources
-      community.general.terraform:
-        project_path: "terraform/"
-        force_init: true
-        variables:
-          network_cidr: ' ["{{ network_cidr }}"]'
-
-    - name: Add Local resolver for the domain
-      ansible.builtin.copy:
-        content: server=/idmdemo.labs/{{ network_cidr | next_nth_usable(1) }}
-        dest: /etc/NetworkManager/dnsmasq.d/idmdemo.conf
-        mode: 0755
-      become: true
-
-    - name: Restart NetworkManager to reload config
-      ansible.builtin.service_facts:
-        name: NetworkManager
-        state: restarted
+        host_modules: "{{ modules }}"
+        host_domain: "{{ domain }}"
+        host_network_cidr: "{{ network_cidr }}"
 
     - name: Ensure to clean known_hosts
       ansible.builtin.known_hosts:
