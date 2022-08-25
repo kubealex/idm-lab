@@ -14,5 +14,7 @@ modules:
     hostname: idm-server
   - module: 02_rhel_client
     instance: rhel-client
-    hostname: el8-server    
+    hostname: idm-client
 domain: idmdemo.labs
+checksum:
+  rhel9: c6942e3ed65947ed48c30589d9c1a752e96c5b94ee8de1923331449fee162cc1

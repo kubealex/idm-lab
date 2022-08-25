@@ -7,40 +7,52 @@ It creates:
 - idm-server.<your-domain> VM with IdM installed and configured with DNS/adtrust
 - idm-client.<your-domain> VM with IdM configured to work as a client to idm-server
 
-## VM setup
+### Install Ansible
 
-VM setup is based on Terraform, it instantiates two virtual machine, *idm-server* and *idm-client*, kickstarting the setup.
+You need to follow the instructions in [Ansible Website](https://docs.ansible.com/ansible/latest/installation_guide/intro_installation.html#installing-the-ansible-community-package) to proceed and install Ansible on your machine.
 
-First you need to download and install Terraform:
+## Needed variables
 
-    sudo yum install -y yum-utils
-    sudo yum-config-manager --add-repo https://rpm.releases.hashicorp.com/RHEL/hashicorp.repo
-    sudo yum -y install terraform
+In order to work, the playbooks need some basic variables in the **lab_vars.yml** file:
 
-Then you need to download the FULL RHEL8 image and link it in the modules folder and create a symbolic link in the modules folder:
+| Variable | Value | Description |
+|--|--|--|
+| **network_cidr** | Defaults to 192.168.210.0/24 | The subnet that is assigned to libvirt network |
+| **offline_token** | No default | [Offline Token](https://access.redhat.com/management/api) for images/packages download from Red Hat Portal |
+| **rhsm_user** | No default | The Red Hat Account username |
+| **rhsm_password** | No default | The Red Hat Account username |
+| **rhsm_pool_id** | No default | The pool ID of the subscription covering the product [in subscription manager](https://access.redhat.com/management/subscriptions/) |
 
-    ln -s /path/to/iso terraform/modules/01_idm_server/rhel8.iso
-    ln -s /path/to/iso terraform/modules/02_rhel_client/rhel8.iso
+## Lab provisioning
 
-Review settings in **idm.tfvars** file, containing some basic inputs:
+The provisioner consists of two playbooks, that configure the underlying components (VM, network) and prepare the guests to install Satellite.
 
-    network_cidr = ["192.168.210.0/24"]
-    domain = "idmdemo.labs"
-    libvirt_network = "vm-net"
-    libvirt_pool = "vm-pool"
-    disk_size = 40
+The first playbook is **provision-lab.yml** which takes care of creating KVM resources.
 
-The terraform plan also creates an isolated virtual network, with DHCP and DNS for the specified domain.
+The package comes with an inventory:
 
-From *terraform* directory, initialize the plugins:
-    
-    terraform init
+    localhost ansible_connection=local
+    [ipaserver]
+    idm-server.idmdemo.labs ansible_user=sysadmin ansible_password=redhat
 
-Then apply the plan:
+    [ipaclients]
+    idm-client.idmdemo.labs ansible_user=sysadmin ansible_password=redhat
 
-    terraform apply -var-file='idm.tfvars'
+The playbook can download RHEL 9 image, or work with pre-downloaded images. The only requirement is that the images need to be placed in the playbook directory with the name and **rhel9.iso**
 
-The setup will take a bit as it is a full install with a kickstarter. 
+To download the images via the playbook, you will need your [Offline Token](https://access.redhat.com/management/api).
+
+**IMPORTANT** If you don't want to download images (it's around 20GB), just leave the variable blank.
+
+Since some modules rely on additional collections you will need to install them via:
+
+    ansible-galaxy install -r requirements.yml
+
+Once you set the *network_cidr* variable to the desired value, you can run the playbook:
+
+    ansible-playbook -i inventory provision-lab.yml
+
+It takes around 20-25 minutes to be up and running. If you experience last step of the playbook being hanging after the machines are completely installed, **relaunch** the playbook as sometimes the ping module gets stuck.
 
 ## IdM setup
 
@@ -81,11 +93,11 @@ Edit *ansible/inventory* file if you need fine tuning on attributes (i.e. if you
 
 Then launch the playbook to install **idm-server**:
 
-    ansible-navigator run -m stdout --eei=ansible-execution-env --pp never --pae false -i ansible/inventory ansible/idm-server-setup.yml 
+    ansible-navigator run -m stdout --eei=ansible-execution-env --pp never --pae false -i ansible/inventory ansible/idm-server-setup.yml
 
 If you want to configure the client to connect to idm-server launch the playbook to setup **idm-client**:
 
-    ansible-navigator run -m stdout --eei=ansible-execution-env --pp never --pae false -i ansible/inventory ansible/idm-client-setup.yml 
+    ansible-navigator run -m stdout --eei=ansible-execution-env --pp never --pae false -i ansible/inventory ansible/idm-client-setup.yml
 
 
 ## Test your configuration

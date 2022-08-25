@@ -1,3 +1,5 @@
+localhost ansible_connection=local
+
 [ipaserver]
 idm-server.idmdemo.labs ansible_user=sysadmin ansible_password=redhat
 
