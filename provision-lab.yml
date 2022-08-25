@@ -52,7 +52,7 @@
 
     - name: Create symbolic link to RHEL image
       ansible.builtin.file:
-        src: "{{ playbook_dir }}/rhel.iso"
+        src: "{{ playbook_dir }}/rhel9.iso"
         dest: "{{ playbook_dir }}/terraform/modules/{{ item.module }}/{{ item.instance }}.iso"
         state: link
       loop: "{{ modules }}"
