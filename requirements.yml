@@ -1,11 +1,11 @@
 ---
 collections:
-- community.general
-- ansible.posix
-- freeipa.ansible_freeipa
+  - community.general
+  - ansible.posix
+  - freeipa.ansible_freeipa
 
 roles:
-- name: package-downloader
-  src: https://github.com/kubealex/role-package-downloader
-- name: host-provisioner
-  src: https://github.com/kubealex/role-host-provisioner
+  - name: package-downloader
+    src: https://github.com/kubealex/role-package-downloader
+  - name: host-provisioner
+    src: https://github.com/kubealex/role-host-provisioner
