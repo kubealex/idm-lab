@@ -3,6 +3,18 @@
   become: true
   collections:
     - freeipa.ansible_freeipa
+  pre_tasks:
+    - name: Register system with Red Hat Subscription Manager
+      community.general.redhat_subscription:
+        state: present
+        username: "{{ rhsm_user }}"
+        password: "{{ rhsm_password }}"
+        pool_ids: "{{ rhsm_pool_id | default(omit, true) }}"
+
+    - name: Ensure all packages are updated
+      ansible.builtin.dnf:
+        name: '*'
+        state: latest # noqa package-latest
   roles:
   - role: freeipa.ansible_freeipa.ipaclient
     state: present

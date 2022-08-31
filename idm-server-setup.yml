@@ -7,23 +7,24 @@
       ansible.builtin.set_fact:
         idm_server_ip: "{{ hostvars[groups['ipaserver'][0]]['ansible_default_ipv4']['address'] }}"
 
-    - name: Register system with Red Hat Subscription Manager
-      community.general.redhat_subscription:
-        state: present
-        username: "{{ rhsm_user }}"
-        password: "{{ rhsm_password }}"
-#        pool_ids: "{{ rhsm_pool_id }}"
-
-    - name: Ensure all packages are updated
-      ansible.builtin.dnf:
-        name: '*'
-        state: latest # noqa package-latest
-
 - name: Playbook to configure IPA servers
   hosts: ipaserver
   become: true
   collections:
     - freeipa.ansible_freeipa
+
+  pre_tasks:
+    - name: Register system with Red Hat Subscription Manager
+      community.general.redhat_subscription:
+        state: present
+        username: "{{ rhsm_user }}"
+        password: "{{ rhsm_password }}"
+        pool_ids: "{{ rhsm_pool_id | default(omit, true) }}"
+
+    - name: Ensure all packages are updated
+      ansible.builtin.dnf:
+        name: '*'
+        state: latest # noqa package-latest
 
   roles:
   - role: freeipa.ansible_freeipa.ipaserver
