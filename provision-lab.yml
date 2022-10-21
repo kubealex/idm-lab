@@ -23,7 +23,8 @@
       vars:
         host_modules: "{{ modules }}"
         host_domain: "{{ domain }}"
-        host_network_cidr: "{{ network_cidr }}"
+        host_tf_vars:
+          network_cidr: ' ["{{ network_cidr }}"]'
 
     - name: Ensure to clean known_hosts
       ansible.builtin.known_hosts:
