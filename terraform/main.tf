@@ -4,7 +4,7 @@ terraform {
   required_providers {
     libvirt = {
       source  = "dmacvicar/libvirt"
-      version = "0.6.14"
+      version = "0.7.0"
       configuration_aliases = [ libvirt ]
     }
   }
@@ -36,10 +36,10 @@ module "idm_server" {
   disk_size = var.disk_size
 }
 
-module "rhel_client" { 
+module "rhel_client" {
   source = "./modules/02_rhel_client"
   depends_on = [module.libvirt_resources]
-  
+
 # Variables
   domain = var.domain
   libvirt_network = var.libvirt_network

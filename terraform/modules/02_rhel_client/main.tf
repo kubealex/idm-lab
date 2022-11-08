@@ -3,7 +3,7 @@ terraform {
   required_providers {
     libvirt = {
       source  = "dmacvicar/libvirt"
-      version = "0.6.14"
+      version = "0.7.0"
     }
   }
 }
@@ -43,7 +43,7 @@ resource "libvirt_domain" "idm-client" {
   disk {
      volume_id = libvirt_volume.os_image_rhel_client.id
   }
-  
+
   disk {
      volume_id = libvirt_volume.kickstart_image_rhel_client.id
   }
